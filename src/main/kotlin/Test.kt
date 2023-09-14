@@ -1,15 +1,12 @@
-import me.alex_s168.ktlib.async.async
+import me.alex_s168.ktlib.atomic.*
+import me.alex_s168.ktlib.atomic.num.AtomicFloat
 
 fun main() {
 
-    async {
-        repeat(2147) {
-            println(it)
-        }
-    }.then {
-        println("done")
-    }
+    val atomic = AtomicFloat(10f)
 
-    println("aaa")
+    atomic += 2f
+
+    println(atomic.get())
 
 }
