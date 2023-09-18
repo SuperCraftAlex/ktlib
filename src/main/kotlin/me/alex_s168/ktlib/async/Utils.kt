@@ -6,3 +6,10 @@ fun Collection<AsyncTask>.await() {
             task.await()
     }
 }
+
+fun Collection<AsyncTask>.cancel() {
+    for (task in this) {
+        if (task.isAlive())
+            task.stop()
+    }
+}
