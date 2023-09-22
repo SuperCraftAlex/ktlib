@@ -1,7 +1,8 @@
 package me.alex_s168.ktlib.tree
 
 import me.alex_s168.ktlib.async.mapAsync
-import me.alex_s168.ktlib.async.toMutableConcurrentCollection
+import me.alex_s168.ktlib.async.mapToConcurrentList
+import me.alex_s168.ktlib.async.toMutableConcurrentList
 
 /**
  * A node in a tree.
@@ -24,10 +25,10 @@ open class Node<E>(
      * @return the cloned node.
      */
     public override fun clone(): MutableNode<E> {
-        val children = children.map { it.clone() }
+        val children = children.mapToConcurrentList { it.clone() }
         return MutableNode(
             value,
-            children.toMutableConcurrentCollection(),
+            children.toMutableConcurrentList(),
             parent
         )
     }

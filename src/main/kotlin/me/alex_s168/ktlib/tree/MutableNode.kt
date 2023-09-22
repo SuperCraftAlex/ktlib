@@ -1,6 +1,6 @@
 package me.alex_s168.ktlib.tree
 
-import me.alex_s168.ktlib.async.concurrentMutableCollectionOf
+import me.alex_s168.ktlib.async.concurrentMutableListOf
 
 /**
  * A node in a tree.
@@ -24,7 +24,7 @@ class MutableNode<E>(
     operator fun plusAssign(value: E) {
         children += MutableNode(
             value = value,
-            children = concurrentMutableCollectionOf(),
+            children = concurrentMutableListOf(),
             this
         )
     }

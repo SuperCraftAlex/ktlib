@@ -2,7 +2,6 @@ package me.alex_s168.ktlib.async
 
 import me.alex_s168.ktlib.atomic.inc
 import me.alex_s168.ktlib.atomic.num.AtomicInt
-import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * Executes the given function for each element of this collection asynchronously.
@@ -40,6 +39,21 @@ fun <T, E> Iterable<T>.mapAsync(
 }
 
 /**
+ * Maps the elements of this collection synchronously.
+ * Returns a thread safe mutable list containing the results.
+ * @param process the function to execute.
+ */
+fun <T, E> Iterable<T>.mapToConcurrentList(
+    process: (T) -> E
+): MutableCollection<E> {
+    val result = concurrentMutableListOf<E>()
+    forEach {
+        result += process(it)
+    }
+    return result
+}
+
+/**
  * Returns the number of elements in this collection.
  */
 fun <T> Iterable<T>.count(): Int {
@@ -55,11 +69,22 @@ fun <T> Iterable<T>.count(): Int {
  * Returns a thread safe mutable collection containing all elements of this collection.
  */
 fun <T> Iterable<T>.toMutableConcurrentCollection(): MutableCollection<T> {
-    val set = ConcurrentLinkedQueue<T>()
+    val set = concurrentMutableCollectionOf<T>()
     forEachAsync {
         set += it
     }
     return set
+}
+
+/**
+ * Returns a thread safe mutable list containing all elements of this collection.
+ */
+fun <T> Iterable<T>.toMutableConcurrentList(): MutableList<T> {
+    val list = concurrentMutableListOf<T>()
+    forEachAsync {
+        list += it
+    }
+    return list
 }
 
 /**

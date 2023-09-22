@@ -1,6 +1,6 @@
 package me.alex_s168.ktlib.tree
 
-import me.alex_s168.ktlib.async.concurrentMutableCollectionOf
+import me.alex_s168.ktlib.async.concurrentMutableListOf
 import me.alex_s168.ktlib.async.forEachAsync
 import me.alex_s168.ktlib.async.toMutableConcurrentCollection
 import me.alex_s168.ktlib.atomic.toAtomic
@@ -26,7 +26,7 @@ class MutableTree<E>(
      * Adds an element to the children of the root node.
      */
     override fun add(element: E): Boolean {
-        root.children.add(MutableNode(element, concurrentMutableCollectionOf(), null))
+        root.children.add(MutableNode(element, concurrentMutableListOf(), null))
         return true
     }
 
@@ -71,7 +71,7 @@ class MutableTree<E>(
     override fun iterator(): MutableIterator<E> {
         // Uses AsyncTreeTraverser to traverse the tree asynchronously.
 
-        val values = concurrentMutableCollectionOf<E>()
+        val values = concurrentMutableListOf<E>()
         val traverser = AsyncTreeTraverser.from(root) { node, _ ->
             node.value?.let { values += it }
             return@from true
@@ -165,7 +165,7 @@ class MutableTree<E>(
             return MutableTree(
                 MutableNode(
                     value = rootValue,
-                    children = concurrentMutableCollectionOf(),
+                    children = concurrentMutableListOf(),
                     parent = null
                 )
             )
