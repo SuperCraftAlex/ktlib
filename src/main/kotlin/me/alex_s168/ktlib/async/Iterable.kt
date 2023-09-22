@@ -2,6 +2,11 @@ package me.alex_s168.ktlib.async
 
 import me.alex_s168.ktlib.atomic.inc
 import me.alex_s168.ktlib.atomic.num.AtomicInt
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * Executes the given function for each element of this collection asynchronously.
@@ -103,4 +108,130 @@ fun Iterable<AsyncTask>.cancel() =
     forEach {
         if (it.isAlive())
             it.stop()
+    }
+
+/**
+ * Returns true if any of the tasks in the iterable are running
+ */
+fun Iterable<AsyncTask>.isRunning(): Boolean {
+    forEach {
+        if (it.isAlive())
+            return true
+    }
+    return false
+}
+
+/**
+ * Returns a single future from a collection of futures that joins all the futures
+ */
+fun <T> Iterable<Future<T>>.joinFutures(): Future<Iterable<T>> =
+    object : Future<Iterable<T>> {
+        private var cancelled = false
+
+        override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
+            cancelled = true
+            this@joinFutures.forEach {
+                it.cancel(mayInterruptIfRunning)
+            }
+            return true
+        }
+
+        override fun isCancelled(): Boolean {
+            if (cancelled) {
+                return true
+            }
+            return this@joinFutures.map {
+                it.isCancelled
+            }.reduce { acc, b ->
+                acc && b
+            }
+        }
+
+        override fun isDone(): Boolean {
+            this@joinFutures.forEach {
+                if (!it.isDone) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        override fun get(): Iterable<T> {
+            if (cancelled) {
+                throw CancellationException()
+            }
+
+            if (!isDone) {
+                throw Exception("Cannot get the value of a unfinished future!")
+            }
+
+            return try {
+                 map {
+                    it.get()
+                }
+            } catch (e: Throwable) {
+                throw ExecutionException(e)
+            }
+        }
+
+        override fun get(timeout: Long, unit: TimeUnit): Iterable<T> {
+            var out: Iterable<T>? = null
+            var ex: Throwable? = null
+            val getTask = async {
+                try {
+                    out = map {
+                        it.get()
+                    }
+                } catch (e: Throwable) {
+                    ex = e
+                }
+            }
+            unit.sleep(timeout)
+            if (getTask.isAlive()) {
+                throw TimeoutException()
+            }
+            ex?.let {
+                throw ExecutionException(it)
+            }
+            return out!!
+        }
+
+    }
+
+/**
+ * Creates a future from the task list and an element
+ */
+fun <T> Iterable<AsyncTask>.createFuture(element: T): Future<T> =
+    object : Future<T> {
+        private var cancelled = false
+
+        override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
+            cancelled = true
+            if (mayInterruptIfRunning) {
+                this@createFuture.cancel()
+            }
+            return true
+        }
+
+        override fun isCancelled(): Boolean =
+            cancelled
+
+        override fun isDone(): Boolean =
+            !this@createFuture.isRunning()
+
+        override fun get(): T {
+            if (cancelled) {
+                throw CancellationException()
+            }
+
+            if (this@createFuture.isRunning()) {
+                throw Exception("Cannot get the value of a unfinished future!")
+            }
+
+            return element
+        }
+
+        override fun get(timeout: Long, unit: TimeUnit): T =
+            throw UnsupportedOperationException("This feature is not implemented yet!")
+
     }
