@@ -1,9 +1,6 @@
 package me.alex_s168.ktlib.tree.traverser
 
-import me.alex_s168.ktlib.async.AsyncTask
-import me.alex_s168.ktlib.async.async
-import me.alex_s168.ktlib.async.await
-import me.alex_s168.ktlib.async.cancel
+import me.alex_s168.ktlib.async.*
 import me.alex_s168.ktlib.tree.Node
 
 /**
@@ -15,7 +12,7 @@ abstract class AsyncTreeTraverser<E>(
     val root: Node<E>
 ): TreeTraverser<E> {
 
-    private val tasks = mutableListOf<AsyncTask>()
+    private val tasks = concurrentMutableCollectionOf<AsyncTask>()
 
     abstract override fun process(node: Node<E>): Boolean
 
