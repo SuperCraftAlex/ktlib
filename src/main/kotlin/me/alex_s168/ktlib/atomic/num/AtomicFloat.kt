@@ -8,11 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger
 class AtomicFloat(
     initialValue: Float = 0f
 ): AtomicNum<Float>() {
-    private val bits: AtomicInteger
-
-    init {
-        bits = AtomicInteger(floatToIntBits(initialValue))
-    }
+    private val bits: AtomicInteger =
+        AtomicInteger(floatToIntBits(initialValue))
 
     override fun set(newValue: Float) {
         bits.set(floatToIntBits(newValue))

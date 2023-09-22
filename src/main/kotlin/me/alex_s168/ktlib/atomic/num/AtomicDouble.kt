@@ -8,11 +8,8 @@ class AtomicDouble(
     initialValue: Double = 0.0
 ): AtomicNum<Double>() {
 
-    private val bits: AtomicLong
-
-    init {
-        bits = AtomicLong(doubleToLongBits(initialValue))
-    }
+    private val bits: AtomicLong =
+        AtomicLong(doubleToLongBits(initialValue))
 
     override fun set(newValue: Double) {
         bits.set(doubleToLongBits(newValue))

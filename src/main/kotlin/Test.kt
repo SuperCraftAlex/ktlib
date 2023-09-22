@@ -1,12 +1,20 @@
-import me.alex_s168.ktlib.atomic.*
-import me.alex_s168.ktlib.atomic.num.AtomicFloat
+import me.alex_s168.ktlib.tree.MutableTree
 
 fun main() {
 
-    val atomic = AtomicFloat(10f)
+    val tree = MutableTree.create<String>()
 
-    atomic += 2f
+    tree += "aa"
 
-    println(atomic.get())
+    val tree2 = tree.mutateIgnoreOrder()
+
+    tree2.root.children.first() += "bbb"
+
+    tree2 += "ccc"
+    tree2 += "gg"
+
+    val tree3 = tree2.cloneIgnoreOrder()
+
+    println(tree3)
 
 }

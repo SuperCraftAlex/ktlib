@@ -3,6 +3,11 @@ package me.alex_s168.ktlib.collection
 import me.alex_s168.ktlib.Lockable
 import me.alex_s168.ktlib.exception.ObjectLockedException
 
+/**
+ * A [List] that can be locked to prevent further modification.
+ * It is based on [ArrayList].
+ * @see Lockable
+ */
 class LockableArrayList<T>(
     initialCapacity: Int = 0
 ): ArrayList<T>(initialCapacity), Lockable {

@@ -1,15 +1,13 @@
 package me.alex_s168.ktlib.async
 
-fun Collection<AsyncTask>.await() {
-    for (task in this) {
-        if (task.isAlive())
-            task.await()
-    }
-}
+import java.util.concurrent.ConcurrentLinkedQueue
 
-fun Collection<AsyncTask>.cancel() {
-    for (task in this) {
-        if (task.isAlive())
-            task.stop()
+/**
+ * Returns a new concurrent and mutable collection with the specified elements.
+ */
+fun <T> concurrentMutableCollectionOf(
+    vararg elements: T
+): MutableCollection<T> =
+    ConcurrentLinkedQueue<T>().also {
+        it.addAll(elements)
     }
-}

@@ -5,6 +5,10 @@ import me.alex_s168.ktlib.exception.ObjectLockedException
 import java.util.Comparator
 import java.util.Stack
 
+/**
+ * A [Stack] that can be locked to prevent further modification.
+ * @see Lockable
+ */
 class LockableStack<T>: Stack<T>(), Lockable {
 
     private var locked = false
