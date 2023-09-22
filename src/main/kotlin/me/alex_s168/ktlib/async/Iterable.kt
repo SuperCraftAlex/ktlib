@@ -202,6 +202,12 @@ fun <T> Iterable<Future<T>>.joinFutures(): Future<Iterable<T>> =
  * Creates a future from the task list and an element
  */
 fun <T> Iterable<AsyncTask>.createFuture(element: T): Future<T> =
+    this.createFuture { element }
+
+/**
+ * Creates a future from the task list and an element provider
+ */
+fun <T> Iterable<AsyncTask>.createFuture(provider: () -> T): Future<T> =
     object : Future<T> {
         private var cancelled = false
 
@@ -228,7 +234,7 @@ fun <T> Iterable<AsyncTask>.createFuture(element: T): Future<T> =
                 throw Exception("Cannot get the value of a unfinished future!")
             }
 
-            return element
+            return provider()
         }
 
         override fun get(timeout: Long, unit: TimeUnit): T =
