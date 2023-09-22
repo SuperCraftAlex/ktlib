@@ -16,6 +16,21 @@ open class Tree<E>(
     open val root: Node<E>
 ): Collection<E>, Cloneable {
 
+    /**
+     * Returns true if the values of the tree
+     */
+    fun isAvailable(): Boolean =
+        root.isAvailable()
+
+    /**
+     * Waits for the values to be available
+     */
+    fun await() =
+        root.await()
+
+    /**
+     * Outputs this tree as a string
+     */
     override fun toString(): String =
         root.toString()
 

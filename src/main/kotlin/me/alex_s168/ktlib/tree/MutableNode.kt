@@ -1,6 +1,7 @@
 package me.alex_s168.ktlib.tree
 
 import me.alex_s168.ktlib.async.concurrentMutableListOf
+import java.util.concurrent.Future
 
 /**
  * A node in a tree.
@@ -14,11 +15,13 @@ import me.alex_s168.ktlib.async.concurrentMutableListOf
 class MutableNode<E>(
     override var value: E?,
     override val children: MutableCollection<MutableNode<E>>,
-    override var parent: Node<E>?
+    override var parent: Node<E>?,
+    childrenFuture: Future<Any>? = null
 ): Node<E>(
     value,
     children,
-    parent
+    parent,
+    childrenFuture
 ) {
 
     operator fun plusAssign(value: E) {

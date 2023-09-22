@@ -3,6 +3,7 @@ package me.alex_s168.ktlib.tree
 import me.alex_s168.ktlib.async.mapAsync
 import me.alex_s168.ktlib.async.mapToConcurrentList
 import me.alex_s168.ktlib.async.toMutableConcurrentList
+import java.util.concurrent.Future
 
 /**
  * A node in a tree.
@@ -15,8 +16,35 @@ import me.alex_s168.ktlib.async.toMutableConcurrentList
 open class Node<E>(
     open val value: E?,
     open val children: Collection<Node<E>>,
-    open val parent: Node<E>?
+    open val parent: Node<E>?,
+    private val childrenFuture: Future<Any>? = null
 ): Cloneable {
+
+    /**
+     * Returns true if the children are available
+     */
+    fun isAvailable(): Boolean {
+        if (childrenFuture?.isDone == false) {
+            return false
+        }
+
+        if (children.any { !it.isAvailable() }) {
+            return false
+        }
+
+        return true
+    }
+
+    /**
+     * Waits for the children to be available
+     */
+    fun await() {
+        childrenFuture?.get()
+
+        children.map {
+            it.childrenFuture?.get()
+        }
+    }
 
     /**
      * Clones this node.

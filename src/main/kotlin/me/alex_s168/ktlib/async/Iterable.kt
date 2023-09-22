@@ -161,10 +161,6 @@ fun <T> Iterable<Future<T>>.joinFutures(): Future<Iterable<T>> =
                 throw CancellationException()
             }
 
-            if (!isDone) {
-                throw Exception("Cannot get the value of a unfinished future!")
-            }
-
             return try {
                  map {
                     it.get()
@@ -230,14 +226,26 @@ fun <T> Iterable<AsyncTask>.createFuture(provider: () -> T): Future<T> =
                 throw CancellationException()
             }
 
-            if (this@createFuture.isRunning()) {
-                throw Exception("Cannot get the value of a unfinished future!")
-            }
+            this@createFuture.await()
 
             return provider()
         }
 
-        override fun get(timeout: Long, unit: TimeUnit): T =
-            throw UnsupportedOperationException("This feature is not implemented yet!")
+        override fun get(timeout: Long, unit: TimeUnit): T {
+            if (cancelled) {
+                throw CancellationException()
+            }
+
+            val task = async {
+                this@createFuture.await()
+            }
+            unit.sleep(timeout)
+            if (task.isAlive()) {
+                task.stop()
+                throw TimeoutException()
+            }
+
+            return provider()
+        }
 
     }
