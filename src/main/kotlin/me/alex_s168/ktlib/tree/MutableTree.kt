@@ -2,7 +2,6 @@ package me.alex_s168.ktlib.tree
 
 import me.alex_s168.ktlib.any.ignore
 import me.alex_s168.ktlib.async.concurrentMutableListOf
-import me.alex_s168.ktlib.async.forEachAsync
 import me.alex_s168.ktlib.async.toMutableConcurrentCollection
 import me.alex_s168.ktlib.atomic.toAtomic
 import me.alex_s168.ktlib.tree.traverser.AsyncTreeTraverser
@@ -61,17 +60,6 @@ class MutableTree<E>(
      */
     override fun addAll(elements: Collection<E>): Boolean {
         elements.forEach {
-            add(it)
-        }
-        return true
-    }
-
-    /**
-     * Adds all elements of the specified collection to the children of the root node.
-     * Does not preserve order.
-     */
-    fun addAllIgnoreOrder(elements: Collection<E>): Boolean {
-        elements.forEachAsync {
             add(it)
         }
         return true

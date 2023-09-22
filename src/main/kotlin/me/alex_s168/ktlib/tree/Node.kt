@@ -1,8 +1,7 @@
 package me.alex_s168.ktlib.tree
 
-import me.alex_s168.ktlib.async.mapAsync
+import me.alex_s168.ktlib.async.mapAsyncConf
 import me.alex_s168.ktlib.async.mapToConcurrentList
-import me.alex_s168.ktlib.async.toMutableConcurrentList
 import java.util.concurrent.Future
 
 /**
@@ -56,7 +55,7 @@ open class Node<E>(
         val children = children.mapToConcurrentList { it.clone() }
         return MutableNode(
             value,
-            children.toMutableConcurrentList(),
+            children,
             parent
         )
     }
@@ -69,7 +68,7 @@ open class Node<E>(
      * @return the cloned node.
      */
     fun cloneIgnoreOrder(): MutableNode<E> {
-        val children = children.mapAsync { it.cloneIgnoreOrder() }
+        val children = children.mapAsyncConf { it.cloneIgnoreOrder() }
         return MutableNode(
             value,
             children,

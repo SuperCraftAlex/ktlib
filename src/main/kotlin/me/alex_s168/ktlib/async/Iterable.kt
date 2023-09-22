@@ -1,15 +1,15 @@
 package me.alex_s168.ktlib.async
 
-import me.alex_s168.ktlib.atomic.inc
-import me.alex_s168.ktlib.atomic.num.AtomicInt
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.math.ceil
 
 /**
  * Executes the given function for each element of this collection asynchronously.
+ * Should only be used if your function takes a long time to execute, and you don't care about the order of the elements.
  * @param process the function to execute.
  */
 fun <T> Iterable<T>.forEachAsync(
@@ -26,7 +26,7 @@ fun <T> Iterable<T>.forEachAsync(
 
 /**
  * Maps the elements of this collection asynchronously.
- * (Useful for when you don't care about the order of the elements.)
+ * (Useful for when you don't care about the order of the elements and your function takes a long time to execute.)
  * @param process the function to execute.
  */
 fun <T, E> Iterable<T>.mapAsync(
@@ -37,6 +37,34 @@ fun <T, E> Iterable<T>.mapAsync(
     forEach {
         tasks += async {
             result += process(it)
+        }
+    }
+    tasks.await()
+    return result
+}
+
+/**
+ * Maps the elements of this collection asynchronously.
+ * Will
+ * (Useful for when you don't care about the order of the elements.)
+ * @param process the function to execute.
+ */
+fun <T, E> Iterable<T>.mapAsyncConf(
+    process: (T) -> E
+): MutableCollection<E> {
+    val tasks = concurrentMutableCollectionOf<AsyncTask>()
+    val result = concurrentMutableCollectionOf<E>()
+    val st = ceil(count().toDouble() / Config.maxAmountOfAsyncThreadsInMap).toInt()
+    val it = iterator()
+    repeat(st) { _ ->
+        tasks += async {
+            repeat(Config.maxAmountOfAsyncThreadsInMap) { _ ->
+                if (!it.hasNext()) {
+                    tasks.cancel()
+                    return@async
+                }
+                result += process(it.next())
+            }
         }
     }
     tasks.await()
@@ -59,23 +87,11 @@ fun <T, E> Iterable<T>.mapToConcurrentList(
 }
 
 /**
- * Returns the number of elements in this collection.
- */
-fun <T> Iterable<T>.count(): Int {
-    if (this is Collection) return size
-    val count = AtomicInt(0)
-    forEachAsync {
-        count.inc()
-    }
-    return count.get()
-}
-
-/**
  * Returns a thread safe mutable collection containing all elements of this collection.
  */
 fun <T> Iterable<T>.toMutableConcurrentCollection(): MutableCollection<T> {
     val set = concurrentMutableCollectionOf<T>()
-    forEachAsync {
+    forEach {
         set += it
     }
     return set
@@ -86,7 +102,7 @@ fun <T> Iterable<T>.toMutableConcurrentCollection(): MutableCollection<T> {
  */
 fun <T> Iterable<T>.toMutableConcurrentList(): MutableList<T> {
     val list = concurrentMutableListOf<T>()
-    forEachAsync {
+    forEach {
         list += it
     }
     return list

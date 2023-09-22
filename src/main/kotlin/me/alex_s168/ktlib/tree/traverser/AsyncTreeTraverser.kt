@@ -16,11 +16,19 @@ abstract class AsyncTreeTraverser<E>(
 
     abstract override fun process(node: Node<E>): Boolean
 
-    private fun processChildren(node: Node<E>) {
+    private fun processChildren(node: Node<E>, depth: Int) {
+        if (depth >= Config.maxAmountOfAsyncRecursion) {
+            node.children.forEach { child ->
+                if (process(child)) {
+                    processChildren(child, depth + 1)
+                }
+            }
+            return
+        }
         tasks += node.children.map { child ->
             async {
                 if (process(child)) {
-                    processChildren(child)
+                    processChildren(child, depth + 1)
                 }
             }
         }
@@ -28,7 +36,7 @@ abstract class AsyncTreeTraverser<E>(
 
     override fun traverse() {
         if (process(root)) {
-            processChildren(root)
+            processChildren(root, 0)
         }
         tasks.await()
     }
@@ -39,6 +47,12 @@ abstract class AsyncTreeTraverser<E>(
     }
 
     companion object {
+        /**
+         * Creates a new [AsyncTreeTraverser] from the given [root] node and [process] function.
+         *
+         * @param root The root node of the tree to traverse.
+         * @param process The function to process each node.
+         */
         @JvmStatic
         fun <T> from(
             root: Node<T>,
