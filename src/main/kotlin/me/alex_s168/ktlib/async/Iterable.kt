@@ -25,6 +25,30 @@ fun <T> Iterable<T>.forEachAsync(
 }
 
 /**
+ * Executes the given function for each element of this collection asynchronously.
+ * Will use [Config.maxAmountOfAsyncThreadsInMap] threads.
+ */
+fun <T> Iterable<T>.forEachAsyncConf(
+    process: (T) -> Unit
+) {
+    val tasks = concurrentMutableCollectionOf<AsyncTask>()
+    val st = ceil(count().toDouble() / Config.maxAmountOfAsyncThreadsInMap).toInt()
+    val it = iterator()
+    repeat(st) { _ ->
+        tasks += async {
+            repeat(Config.maxAmountOfAsyncThreadsInMap) { _ ->
+                if (!it.hasNext()) {
+                    tasks.cancel()
+                    return@async
+                }
+                process(it.next())
+            }
+        }
+    }
+    tasks.await()
+}
+
+/**
  * Maps the elements of this collection asynchronously.
  * (Useful for when you don't care about the order of the elements and your function takes a long time to execute.)
  * @param process the function to execute.
@@ -45,7 +69,7 @@ fun <T, E> Iterable<T>.mapAsync(
 
 /**
  * Maps the elements of this collection asynchronously.
- * Will
+ * Will use [Config.maxAmountOfAsyncThreadsInMap] threads.
  * (Useful for when you don't care about the order of the elements.)
  * @param process the function to execute.
  */
