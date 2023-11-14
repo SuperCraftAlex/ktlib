@@ -147,12 +147,12 @@ open class Tree<E>(
             tasks += async {
                 if (!contains(element)) {
                     found.set(false)
-                    tasks.cancel()
+                    tasks.asRunning().cancel()
                 }
             }
         }
 
-        tasks.await()
+        tasks.asRunning().await()
 
         return found.get()
     }

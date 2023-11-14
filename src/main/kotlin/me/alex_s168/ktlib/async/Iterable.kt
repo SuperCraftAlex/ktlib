@@ -21,7 +21,7 @@ fun <T> Iterable<T>.forEachAsync(
             process(it)
         }
     }
-    tasks.await()
+    tasks.asRunning().await()
 }
 
 /**
@@ -38,14 +38,14 @@ fun <T> Iterable<T>.forEachAsyncConf(
         tasks += async {
             repeat(Config.maxAmountOfAsyncThreadsInMap) { _ ->
                 if (!it.hasNext()) {
-                    tasks.cancel()
+                    tasks.asRunning().cancel()
                     return@async
                 }
                 process(it.next())
             }
         }
     }
-    tasks.await()
+    tasks.asRunning().await()
 }
 
 /**
@@ -63,7 +63,7 @@ fun <T, E> Iterable<T>.mapAsync(
             result += process(it)
         }
     }
-    tasks.await()
+    tasks.asRunning().await()
     return result
 }
 
@@ -84,14 +84,14 @@ fun <T, E> Iterable<T>.mapAsyncConf(
         tasks += async {
             repeat(Config.maxAmountOfAsyncThreadsInMap) { _ ->
                 if (!it.hasNext()) {
-                    tasks.cancel()
+                    tasks.asRunning().cancel()
                     return@async
                 }
                 result += process(it.next())
             }
         }
     }
-    tasks.await()
+    tasks.asRunning().await()
     return result
 }
 
@@ -130,35 +130,6 @@ fun <T> Iterable<T>.toMutableConcurrentList(): MutableList<T> {
         list += it
     }
     return list
-}
-
-/**
- * Awaits all tasks in the iterable.
- */
-fun Iterable<AsyncTask>.await() =
-    forEach {
-        if (it.isAlive())
-            it.await()
-    }
-
-/**
- * Cancels all tasks in the iterable.
- */
-fun Iterable<AsyncTask>.cancel() =
-    forEach {
-        if (it.isAlive())
-            it.stop()
-    }
-
-/**
- * Returns true if any of the tasks in the iterable are running
- */
-fun Iterable<AsyncTask>.isRunning(): Boolean {
-    forEach {
-        if (it.isAlive())
-            return true
-    }
-    return false
 }
 
 /**
@@ -247,10 +218,12 @@ fun <T> Iterable<AsyncTask>.createFuture(provider: () -> T): Future<T> =
     object : Future<T> {
         private var cancelled = false
 
+        private val running = this@createFuture.asRunning()
+
         override fun cancel(mayInterruptIfRunning: Boolean): Boolean {
             cancelled = true
             if (mayInterruptIfRunning) {
-                this@createFuture.cancel()
+                running.cancel()
             }
             return true
         }
@@ -259,14 +232,14 @@ fun <T> Iterable<AsyncTask>.createFuture(provider: () -> T): Future<T> =
             cancelled
 
         override fun isDone(): Boolean =
-            !this@createFuture.isRunning()
+            !running.isRunning()
 
         override fun get(): T {
             if (cancelled) {
                 throw CancellationException()
             }
 
-            this@createFuture.await()
+            running.await()
 
             return provider()
         }
@@ -277,7 +250,7 @@ fun <T> Iterable<AsyncTask>.createFuture(provider: () -> T): Future<T> =
             }
 
             val task = async {
-                this@createFuture.await()
+                running.await()
             }
             unit.sleep(timeout)
             if (task.isAlive()) {

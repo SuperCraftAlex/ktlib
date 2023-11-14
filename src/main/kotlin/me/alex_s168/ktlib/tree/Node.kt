@@ -18,6 +18,12 @@ open class Node<E>(
     open val parent: Node<E>?,
     private val childrenFuture: Future<Any>? = null
 ): Cloneable {
+    
+    fun isMutable(): Boolean =
+        this is MutableNode
+
+    fun asMutable(): MutableNode<E> =
+        this as MutableNode<E>
 
     /**
      * Returns true if the children are available

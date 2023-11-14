@@ -38,11 +38,11 @@ abstract class AsyncTreeTraverser<E>(
         if (process(root)) {
             processChildren(root, 0)
         }
-        tasks.await()
+        tasks.asRunning().await()
     }
 
     override fun cancel() {
-        tasks.cancel()
+        tasks.asRunning().cancel()
         tasks.clear()
     }
 
