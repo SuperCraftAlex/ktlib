@@ -29,7 +29,7 @@ fun Iterable<AsyncTask>.asRunning(): Running {
 fun Running.then(other: Runnable): Running =
     object : Running {
         val task = async {
-            await()
+            this@then.await()
             other.run()
         }
 
